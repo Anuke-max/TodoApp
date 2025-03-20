@@ -1,4 +1,4 @@
-const apiUrl = '';  // Replace with your API Gateway URL
+const apiUrl = 'https://k43ul5kwxg.execute-api.us-east-2.amazonaws.com/prod/tasks';  // Replace with your API Gateway URL
 
 window.addEventListener('load', () => {
     const nameInput = document.querySelector('#name');
