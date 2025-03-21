@@ -46,3 +46,23 @@ todoInput.addEventListener("keypress", function(event) {
     addButton.click();
   }
 });
+
+
+fetch('https://k43ul5kwxg.execute-api.us-east-2.amazonaws.com/prod/tasks')
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    return response.json(); // Parse the JSON data
+  })
+  .then(data => {
+    console.log(data); // Log the todo items or do something with the data
+    data.map(item => (
+        createTodoItem(item.name)
+    ))
+
+
+  })
+  .catch(error => {
+    console.error('There was a problem with the fetch operation:', error);
+  });
