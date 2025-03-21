@@ -1,137 +1,48 @@
-const apiUrl = 'https://k43ul5kwxg.execute-api.us-east-2.amazonaws.com/prod/tasks';  // Replace with your API Gateway URL
+// Select elements
+const addButton = document.getElementById("add-btn");
+const todoInput = document.getElementById("todo-input");
+const todoList = document.getElementById("todo-list");
 
-window.addEventListener('load', () => {
-    const nameInput = document.querySelector('#name');
-    const newTodoForm = document.querySelector('#new-todo-form');
-    const username = localStorage.getItem('username') || '';
+// Function to create a new to-do item
+function createTodoItem(task) {
+  // Create list item
+  const li = document.createElement("li");
 
-    nameInput.value = username;
+  // Create the task text
+  const taskText = document.createElement("span");
+  taskText.innerText = task;
+  li.appendChild(taskText);
 
-    nameInput.addEventListener('change', (e) => {
-        localStorage.setItem('username', e.target.value);
-    });
+  // Add a delete button
+  const deleteButton = document.createElement("button");
+  deleteButton.innerText = "Delete";
+  deleteButton.classList.add("delete-btn");
+  deleteButton.onclick = function() {
+    li.remove();
+  };
+  li.appendChild(deleteButton);
 
-    newTodoForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
+  // Mark the task as completed
+  taskText.onclick = function() {
+    li.classList.toggle("completed");
+  };
 
-        const todo = {
-            content: e.target.elements.content.value,
-            category: e.target.elements.category.value,
-            done: false,
-            createdAt: new Date().getTime(),
-        };
+  // Append the new list item to the todo list
+  todoList.appendChild(li);
+}
 
-        // POST request to create a new todo in MongoDB
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(todo),
-        });
-
-        const result = await response.json();
-        DisplayTodos();  // Refresh the todo list
-        e.target.reset();
-    });
-
-    DisplayTodos();  // Display todos on page load
+// Event listener for the add button
+addButton.addEventListener("click", function() {
+  const task = todoInput.value.trim();
+  if (task) {
+    createTodoItem(task);
+    todoInput.value = ""; // Clear the input field after adding the task
+  }
 });
 
-// Fetch and display todos from MongoDB
-async function DisplayTodos() {
-    const todoList = document.querySelector('#todo-list');
-    todoList.innerHTML = "";
-
-    const response = await fetch(apiUrl);
-    const todos = await response.json();
-
-    todos.forEach(todo => {
-        const todoItem = document.createElement('div');
-        todoItem.classList.add('todo-item');
-
-        const label = document.createElement('label');
-        const input = document.createElement('input');
-        const span = document.createElement('span');
-        const content = document.createElement('div');
-        const actions = document.createElement('div');
-        const edit = document.createElement('button');
-        const deleteButton = document.createElement('button');
-
-        input.type = 'checkbox';
-        input.checked = todo.done;
-        span.classList.add('bubble');
-        if (todo.category === 'personal') {
-            span.classList.add('personal');
-        } else {
-            span.classList.add('business');
-        }
-        content.classList.add('todo-content');
-        actions.classList.add('actions');
-        edit.classList.add('edit');
-        deleteButton.classList.add('delete');
-
-        content.innerHTML = `<input type="text" value="${todo.content}" readonly>`;
-        edit.innerHTML = 'Edit';
-        deleteButton.innerHTML = 'Delete';
-
-        label.appendChild(input);
-        label.appendChild(span);
-        actions.appendChild(edit);
-        actions.appendChild(deleteButton);
-        todoItem.appendChild(label);
-        todoItem.appendChild(content);
-        todoItem.appendChild(actions);
-
-        todoList.appendChild(todoItem);
-
-        if (todo.done) {
-            todoItem.classList.add('done');
-        }
-
-        input.addEventListener('change', async (e) => {
-            todo.done = e.target.checked;
-
-            // PATCH request to update todo in MongoDB
-            await fetch(`${apiUrl}/${todo._id}`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ done: todo.done }),
-            });
-
-            DisplayTodos();  // Refresh the todo list
-        });
-
-        edit.addEventListener('click', (e) => {
-            const input = content.querySelector('input');
-            input.removeAttribute('readonly');
-            input.focus();
-            input.addEventListener('blur', async (e) => {
-                input.setAttribute('readonly', true);
-                todo.content = e.target.value;
-
-                // PATCH request to update todo content in MongoDB
-                await fetch(`${apiUrl}/${todo._id}`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ content: todo.content }),
-                });
-
-                DisplayTodos();  // Refresh the todo list
-            });
-        });
-
-        deleteButton.addEventListener('click', async () => {
-            // DELETE request to remove todo from MongoDB
-            await fetch(`${apiUrl}/${todo._id}`, {
-                method: 'DELETE',
-            });
-
-            DisplayTodos();  // Refresh the todo list
-        });
-    });
-}
+// Allow pressing Enter to add a task
+todoInput.addEventListener("keypress", function(event) {
+  if (event.key === "Enter") {
+    addButton.click();
+  }
+});
